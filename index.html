@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="wtn.css">
+</head>
+<body>
+
+<header id="mainHeader" class="mainHeader ng-scope">
+
+    <h1 class="mainHeader_logo"> Wolftech News </h1>
+
+    <h2 class="mainHeader_clock ng-scope ng-binding" ng-controller="clockCtrl" title="Thursday, April 23, 2015">
+
+        15:27<span class="ng-binding">:59</span>
+    </h2>
+
+    <div class="mainHeader_user" ng-show="user.show">
+
+        <a href="/user" class="mainHeader_user_link">
+            <!-- ngIf: user.image --><div class="mainHeader_user_image ng-scope" ng-if="user.image" ng-style="{'background-image':'url('+user.image+')'}" style="background-image: url(https://dl.dropboxusercontent.com/u/109506910/wolf.jpg);"></div><!-- end ngIf: user.image -->
+
+            <h3 class="mainHeader_user_name">
+                Signed in as
+                <span class="ng-binding"> Ola Normann </span>
+            </h3>
+        </a>
+
+        <a ng-click="auth.logout($event)" class="mainHeader_user_signout" href="/" title="Sign out of Wolftech News">
+            Sign out
+        </a>
+
+    </div>
+
+</header>
+
+<!-- <script src="three.lib"></script> -->
+<script src="lib/three.min.js"></script>
+<script src="World.js"></script>
+<script src="Event.js"></script>
+<script src="CurvedLine.js"></script>
+<script src="WorldView.js"></script>
+<script src="lib/angular.min.js"></script>
+
+</body>
+</html>
