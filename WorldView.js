@@ -1,8 +1,11 @@
-
+//Global variables
+//-----------------------------------------------------------------------------
 var scene, camera, renderer, rotation;
 var material, earth, light, stars, worldEvent;
 var scalar, anchScalar;
-
+var locked = true, lockEarth = false;
+var camPosZ, camPosX, keyCode;
+//-----------------------------------------------------------------------------
 
 init();
 animate();
@@ -16,15 +19,17 @@ function init(){
     earth = new World();
     scene.add(earth);
 
-    //TODO - make Event list and/or controller
-    var worldEvent1 = new Event(10,5);
+//TODO - make Event list and/or controller
+//Making events
+//-----------------------------------------------------------------------------
+    var worldEvent1 = new Event(60,-1.5);
     earth.addEvent(worldEvent1);
     worldEvent1.addMesh(
         new THREE.Mesh(
             new THREE.SphereGeometry(2, 10,10),
             new THREE.MeshBasicMaterial({color: 0xf0ff00})
     ));
-    var worldEvent2 = new Event(180,0);
+    var worldEvent2 = new Event(130,0);
     worldEvent2.addMesh(
         new THREE.Mesh(
             new THREE.SphereGeometry(2, 10,10),
@@ -45,42 +50,19 @@ function init(){
             new THREE.MeshBasicMaterial({color: 0xffffff})
         ));
     earth.addEvent(eventBergen);
+//-----------------------------------------------------------------------------
 
-    var mid = midPoint(60,5,100,30);
-    var midA = midPointXYZ(worldEvent1.position, mid);
-    var midB = midPointXYZ(mid, worldEvent2.position);
 
-    //var curveObject = new CurvedLine(worldEvent1, worldEvent2, 0xff0000);
-    //Line between two events
-    /*
-    var curve = new THREE.QuadraticBezierCurve3(
-        worldEvent1.position,
-        mid.clone().multiplyScalar(1.4),
-        worldEvent2.position
-    ); */ /*
-    var curve = new THREE.SplineCurve3([
-        worldEvent1.position,
-        midA.multiplyScalar(3),
-        mid.clone().multiplyScalar(4),
-        midB.multiplyScalar(3),
-        worldEvent2.position
-    ]);
-    var geom = new THREE.Geometry();
-    geom.vertices = curve.getPoints( 100 );
-    var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-    var curveObject = new THREE.Line( geom, material );
-    scene.add(curveObject);
-    earth.add(curveObject);*/
-
-    // Sjekker distansen mellom to punkter til linjen, og setter verdien til scalaren
-
+//Curved Line
+//---------------------------------------------------------------------------------------------------
+    //Midpoint and event-positions
     var dist = worldEvent1.position.clone().sub(worldEvent2.position).length();
-    var distHeight = earth.rad + dist * 0.7;
     var start = worldEvent1.position;
     var end = worldEvent2.position;
     var midP = start.clone().lerp(end, 0.5);
     var midL = midP.length();
 
+//Check distance and set scalar-multiplier
     scalar = 0.3;
     anchScalar = 1.0;
     if(dist > 350) {
@@ -88,17 +70,20 @@ function init(){
         anchScalar = 1.1;
     }
 
+//Multiply Midpoint
     midP.normalize();
     midP.multiplyScalar(midL + dist * scalar);
     var normal = (new THREE.Vector3()).sub(start,end);
     normal.normalize();
 
+//Make "anchors" along the curve-path
     var distHalf = dist * 0.5;
     var startAnch = start.clone().multiplyScalar(anchScalar);
     var startA = midP.clone().add(normal.clone().multiplyScalar(distHalf));
     var endB = midP.clone().add(normal.clone().multiplyScalar(-distHalf));
     var endAnch = end.clone().multiplyScalar(anchScalar);
 
+//Make curves, get points, create geometry + material
     var splineCurveA = new THREE.CubicBezierCurve3(start, startAnch, startA, midP);
     var splineCurveB = new THREE.CubicBezierCurve3(midP, endB, endAnch, end);
     var points = splineCurveA.getPoints(50);
@@ -111,81 +96,105 @@ function init(){
     var curveObject = new THREE.Line( curveGeom, material );
     scene.add(curveObject);
     earth.add(curveObject);
+//-------------------------------------------------------------------------------------------------
 
-    //Create an object curvedLine.
-    //var curveGeom2 = new CurvedLine(worldEvent3, eventBergen);
-    //var curveObj2 = new THREE.Line(curveGeom2, material);
-    //scene.add(curveObj2);
-    //earth.add(curveObj2);
-
+//Camera
+//-----------------------------------------------------------------------------
+    camPosX = 0;
+    camPosZ = 650;
     camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
-    camera.position.z = 550;
-    camera.position.y = 200;
- //   earth.add(camera);
+    camera.position.z = camPosZ;
+    camera.position.y = 100;
+//-----------------------------------------------------------------------------
+
+
+//Renderer
+//-----------------------------------------------------------------------------
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
+//-----------------------------------------------------------------------------
 
-    //light adding
-    scene.add(new THREE.AmbientLight(0xe0e0e0));
+
+//Light
+//-----------------------------------------------------------------------------
+    scene.add(new THREE.AmbientLight(0xcbcbcb));
     light = new THREE.DirectionalLight(0xffffff, 0.3);
     light.position.set(200,0,500);
     scene.add(light);
+//-----------------------------------------------------------------------------
 
-    stars = createStars(100, 200);
+
+//Stars
+//-----------------------------------------------------------------------------
+    stars = createStars(earth.rad, earth.seg);
     scene.add(stars);
+//-----------------------------------------------------------------------------
 
-
-    //window.setInterval(changeParent(), 3000);
 
     document.body.appendChild(renderer.domElement);
-   // document.addEventListener("keydown", keyPressed, true);
 }
+
 
 //TODO: Get more realistic stars. Use Parallax pixel stars / SCSS?
 function createStars(rad, seg) {
     return new THREE.Mesh(
         new THREE.SphereGeometry(rad*10 , seg, seg),
         new THREE.MeshBasicMaterial({
-            map:    THREE.ImageUtils.loadTexture('img/stars.png'),
+            map:    THREE.ImageUtils.loadTexture('img/stars5.jpg'),
             side:   THREE.BackSide
         })
     );
 }
+
 
 //TODO: More action in this function; rotation, light etc.?
 function animate() {
     requestAnimationFrame(animate);
 
     earth.rotate();
-    camera.lookAt(earth.position);
+    if(locked) {
+        camera.lookAt(earth.position);
+    }
+
+    if(lockEarth){
+        earth.rotationSpeed = 0;
+    } else {
+        earth.rotationSpeed = 0.003;
+    }
+
+    document.addEventListener("keydown", keyPressed, false);
 
     renderer.render(scene, camera);
 }
 
-function toRadians(ang) {
-    return ang * (Math.PI / 180);
+
+//Controls important events
+function keyPressed(event) {
+    keyCode = event.which;
+
+    if(keyCode == 38 && camPosZ > 150 ) {
+        camPosZ -= 5;
+    }
+    if(keyCode == 40) {
+        camPosZ += 5;
+    }
+    if(keyCode == 37) {
+        camPosX -= 5;
+    }
+    if(keyCode == 39) {
+        camPosX += 5;
+    }
+    camera.position.z = camPosZ;
+    //camera.position.y = camPosY;
+    camera.position.x = camPosX;
+
+    //'l', Lock/Unlock the camera pointing at the root
+    if(keyCode == 76){
+        locked = !locked;
+    }
+
+    //'r', stops/starts rotating earth
+    if(keyCode == 82){
+        lockEarth = !lockEarth;
+    }
 }
-
-//TODO: Make this function work!
-function midPoint(lo1, la1, lo2, la2) {
-    var lat1 = toRadians(la1), lon1 = toRadians(lo1), lat2=toRadians(la2), lon2=toRadians(lo2);
-    var vec1 = new THREE.Vector3(
-        Math.cos(lat1) * Math.cos(lon1),
-        Math.cos(lat1) * Math.sin(lon1),
-        Math.sin(lat1));
-    var vec2 = new THREE.Vector3(
-        Math.cos(lat2) * Math.cos(lon2),
-        Math.cos(lat2) * Math.sin(lon2),
-        Math.sin(lat2));
-
-    return new THREE.Vector3(earth.rad*((vec1.x + vec2.x)/2), earth.rad*((vec1.y + vec2.y)/2), earth.rad * ((vec1.z + vec2.z)/2) );
-}
-
-function midPointXYZ(a, b) {
-    return new THREE.Vector3(((a.x + b.x)/2), ((a.y + b.y)/2), ((a.z + b.z)/2));
-}
-
-/**
- * Created by Anette on 27.02.2015.
- */
-
