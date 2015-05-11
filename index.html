@@ -12,24 +12,26 @@
     <h1 class="mainHeader_logo"> Wolftech News </h1>
 
     <h2 class="mainHeader_clock ng-scope ng-binding" ng-controller="clockCtrl" title="Thursday, April 23, 2015">
-
-        15:27<span class="ng-binding">:59</span>
+        <span class="ng-binding">World View</span>
     </h2>
+
+    <h4 class="subtitle">
+        <span class="ng-binding">A visual representation of resources and events in mediaflow</span>
+    </h4>
 
     <div class="mainHeader_user" ng-show="user.show">
 
         <a href="/user" class="mainHeader_user_link">
-            <!-- ngIf: user.image --><div class="mainHeader_user_image ng-scope" ng-if="user.image" ng-style="{'background-image':'url('+user.image+')'}" style="background-image: url(https://dl.dropboxusercontent.com/u/109506910/wolf.jpg);"></div><!-- end ngIf: user.image -->
+            <!-- ngIf: user.image <div class="mainHeader_user_image ng-scope" ng-if="user.image" ng-style="{'background-image':'url('+user.image+')'}" style="background-image: url(https://dl.dropboxusercontent.com/u/109506910/wolf.jpg);"></div>--><!-- end ngIf: user.image -->
 
             <h3 class="mainHeader_user_name">
-                Signed in as
-                <span class="ng-binding"> Ola Normann </span>
+                Utviklet av:
+                <span class="ng-binding"> Anette Haukeland Fonnes </span>
+                <span class="ng-binding"> Christer Steinfinsbø </span>
             </h3>
         </a>
 
-        <a ng-click="auth.logout($event)" class="mainHeader_user_signout" href="/" title="Sign out of Wolftech News">
-            Sign out
-        </a>
+       <!--  <a ng-click="auth.logout($event)" class="mainHeader_user_signout" href="/" title="Sign out of Wolftech News"></a> -->
 
     </div>
 

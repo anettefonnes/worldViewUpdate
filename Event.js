@@ -1,8 +1,8 @@
 "use strict";
-var Event = function(longitude, latitude)
+var Event = function(latitude, longitude)
 {
     this.__proto__ = Object.create(new THREE.Object3D());
-    this.position.copy(GeoLocToVec3D(longitude,latitude));
+    this.position.copy(GeoLocToVec3D(latitude,longitude));
 
     this.addMesh = function(mesh){
         this.add(mesh);
@@ -10,15 +10,15 @@ var Event = function(longitude, latitude)
 };
 
 //TODO GeoLocToVec3D to Input Manager
-function GeoLocToVec3D(lo, la) {
+function GeoLocToVec3D(la, lo) {
 
     lo = Number(lo).toRadians();
     la = Number(la).toRadians();
 
     return new THREE.Vector3(
         earth.rad * Math.cos(la) * Math.cos(lo),
-        earth.rad * Math.cos(la) * Math.sin(lo),
-        earth.rad * Math.sin(la)
+        earth.rad * Math.sin(la),
+        earth.rad * Math.cos(la) * Math.sin(lo)
     );
 }
 
